@@ -64,7 +64,7 @@
             cursor: pointer;
         }
 
-        .left .list li:hover,
+        .left .list li:not(:has(input)):hover,
         .left .list li:hover span {
             background-color: #4a99f8;
             color: white;
@@ -85,6 +85,26 @@
             border: none;
             border-radius: 8px;
             cursor: pointer;
+        }
+
+        .app_btn {
+            width: 100%;
+            margin: 5px 0;
+            padding: 10px;
+            outline: none;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        .bg_none {
+            background-color: white;
+            border: 1px solid black;
+        }
+
+        .bg_primary {
+            background-color: #4a99f8;
+            color: white;
         }
 
         .right {
@@ -110,6 +130,7 @@
                 <li><i class="fa-solid fa-paintbrush"></i> <span>Brush</span></li>
                 <li><i class="fa-solid fa-eraser"></i> <span>Eraser</span></li>
                 <li><i class="fa-solid fa-fill"></i> <span>Fill color</span></li>
+                <li><input type="range" value="7" min="1" max="10"></li>
             </ul>
             <div class="title">
                 <span>Choose Colors</span>
@@ -117,10 +138,14 @@
             <div class="list">
                 <input type="color" id="favcolor" value="#ff0000">
             </div>
-            <button>Clear Canvas</button>
-            <button>Save as image</button>
+            <button class="app_btn bg_none">Clear Canvas</button>
+            <button class="app_btn bg_primary">Save as image</button>
         </div>
         <div class="right"></div>
     </div>
+
+    <script>
+
+    </script>
 </body>
 </html>
