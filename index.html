@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Paint App</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
         * {
             margin: 0;
@@ -12,6 +12,7 @@
             box-sizing: border-box;
             font-family: sans-serif;
         }
+
         body {
             background-color: #4a99f8;
         }
@@ -36,7 +37,6 @@
         .left {
             width: 300px;
             padding: 10px 20px;
-            
         }
 
         .left > * {
@@ -46,7 +46,6 @@
         .left .list {
             list-style: none;
             color: #56595e;
-
         }
 
         .left .list span {
@@ -63,12 +62,6 @@
             align-items: center;
             cursor: pointer;
         }
-
-        /* .left .list li:not(:has(input)):hover,
-        .left .list li:hover span {
-            background-color: #4a99f8;
-            color: white;
-        } */
 
         .left .list li.active,
         .left .list li.active span {
@@ -169,33 +162,23 @@
     </div>
     <script>
         const canvas = document.getElementById('myCanvas');
-        const ctx = canvas.getContext('2d');
         const tools = document.querySelectorAll(".tool");
         const fillcolor = document.querySelector("#fill-color");
         const favcolor = document.querySelector("#favcolor");
-
         const clear_btn = document.querySelector("#clear_btn");
         const save_btn = document.querySelector("#save_btn");
 
-        const undoButton = document.getElementById("undoButton");
-        const redoButton = document.getElementById("redoButton");
-
-        let undoStack = [];
-        let redoStack = [];
-
-
-
+        const ctx = canvas.getContext('2d');
         let selectedTool = "Brush";
-
         let prevMouseX, prevMouseY, snapshot;
+        var isDrawing = false;
 
         canvas.setAttribute('width', canvas.offsetWidth);
         canvas.setAttribute('height', canvas.offsetHeight);
+
         ctx.fillStyle = "#fff";
         ctx.fillRect(0,0,canvas.width,canvas.height);
         ctx.fillStyle = favcolor.value;
-
-        var isDrawing = false;
 
         ctx.lineWidth = document.getElementById("line-width").value;
         function change_width() {
@@ -207,13 +190,13 @@
                 return ctx.strokeRect(e.offsetX, e.offsetY, prevMouseX - e.offsetX, prevMouseY - e.offsetY);
             }
             return ctx.fillRect(e.offsetX, e.offsetY, prevMouseX - e.offsetX, prevMouseY - e.offsetY);
-
         }
 
         function drawCircle(e) {
-            ctx.beginPath();
             let radius = Math.sqrt(Math.pow((prevMouseX - e.offsetX), 2) + Math.pow((prevMouseY - e.offsetY), 2));
-            ctx.arc(prevMouseX, prevMouseY, radius, 0,2*Math.PI);
+
+            ctx.beginPath();
+            ctx.arc(prevMouseX, prevMouseY, radius, 0, 2 * Math.PI);
 
             fillcolor.checked ? ctx.fill() : ctx.stroke();
         }
@@ -232,6 +215,7 @@
             if (!isDrawing) return;
 
             ctx.putImageData(snapshot, 0, 0);
+            
             if (selectedTool === "Brush") {
                 ctx.lineTo(e.offsetX, e.offsetY);
                 ctx.stroke();
