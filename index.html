@@ -64,10 +64,15 @@
             cursor: pointer;
         }
 
-        .left .list li:not(:has(input)):hover,
+        /* .left .list li:not(:has(input)):hover,
         .left .list li:hover span {
             background-color: #4a99f8;
             color: white;
+        } */
+
+        .left .list li.active,
+        .left .list li.active span {
+            color: #4a99f8;
         }
 
         .left .list li i {
@@ -80,11 +85,23 @@
         }
 
         .left .list input {
+            outline: none;
+            border: none;
+            cursor: pointer;
+        }
+
+        .left .list input:not([type="checkbox"]) {
             width: 100%;
             outline: none;
             border: none;
             border-radius: 8px;
             cursor: pointer;
+        }
+
+        .left .list input[type="checkbox"] {
+            margin-right: 10px;
+            height: 18px;
+            width: 18px;
         }
 
         .app_btn {
@@ -110,6 +127,11 @@
         .right {
             width: 900px;
         }
+
+        #myCanvas {
+            height: 100%;
+            width: 100%;
+        }
     </style>
 </head>
 <body>
@@ -119,18 +141,18 @@
                 <span>Shapes</span>
             </div>
             <ul class="list">
-                <li><i class="fa-regular fa-square"></i> <span>Rectangle</span></li>
-                <li><i class="fa-regular fa-circle"></i> <span>Circle</span></li>
-                <li><i class="fa-solid fa-caret-up" style="font-size: 25px;"></i> <span>Triangle</span></li>
+                <li class="option tool" id="Rectangle"><i class="fa-regular fa-square"></i> <span>Rectangle</span></li>
+                <li class="option tool" id="Circle"><i class="fa-regular fa-circle"></i> <span>Circle</span></li>
+                <li class="option tool" id="Triangle"><i class="fa-solid fa-caret-up" style="font-size: 25px;"></i> <span>Triangle</span></li>
             </ul>
             <div class="title">
                 <span>Options</span>
             </div>
             <ul class="list">
-                <li><i class="fa-solid fa-paintbrush"></i> <span>Brush</span></li>
-                <li><i class="fa-solid fa-eraser"></i> <span>Eraser</span></li>
-                <li><i class="fa-solid fa-fill"></i> <span>Fill color</span></li>
-                <li><input type="range" value="7" min="1" max="10"></li>
+                <li class="option tool active" id="Brush"><i class="fa-solid fa-paintbrush"></i> <span>Brush</span></li>
+                <li class="option tool" id="Eraser"><i class="fa-solid fa-eraser"></i> <span>Eraser</span></li>
+                <li class="option"><input type="checkbox" id="fill-color"><label for="fill-color">Fill color</label></li>
+                <li><input type="range" id="line-width" value="7" min="1" max="20" onchange="change_width()"></li>
             </ul>
             <div class="title">
                 <span>Choose Colors</span>
@@ -138,14 +160,129 @@
             <div class="list">
                 <input type="color" id="favcolor" value="#ff0000">
             </div>
-            <button class="app_btn bg_none">Clear Canvas</button>
-            <button class="app_btn bg_primary">Save as image</button>
+            <button class="app_btn bg_none" id="clear_btn">Clear Canvas</button>
+            <button class="app_btn bg_primary" id="save_btn">Save as image</button>
         </div>
-        <div class="right"></div>
+        <div class="right">
+            <canvas id="myCanvas"></canvas>
+        </div>
     </div>
-
     <script>
+        const canvas = document.getElementById('myCanvas');
+        const ctx = canvas.getContext('2d');
+        const tools = document.querySelectorAll(".tool");
+        const fillcolor = document.querySelector("#fill-color");
+        const favcolor = document.querySelector("#favcolor");
 
+        const clear_btn = document.querySelector("#clear_btn");
+        const save_btn = document.querySelector("#save_btn");
+
+        const undoButton = document.getElementById("undoButton");
+        const redoButton = document.getElementById("redoButton");
+
+        let undoStack = [];
+        let redoStack = [];
+
+
+
+        let selectedTool = "Brush";
+
+        let prevMouseX, prevMouseY, snapshot;
+
+        canvas.setAttribute('width', canvas.offsetWidth);
+        canvas.setAttribute('height', canvas.offsetHeight);
+        ctx.fillStyle = "#fff";
+        ctx.fillRect(0,0,canvas.width,canvas.height);
+        ctx.fillStyle = favcolor.value;
+
+        var isDrawing = false;
+
+        ctx.lineWidth = document.getElementById("line-width").value;
+        function change_width() {
+            ctx.lineWidth = document.getElementById("line-width").value;
+        }
+
+        function drawRect(e) {
+            if (!fillcolor.checked) {
+                return ctx.strokeRect(e.offsetX, e.offsetY, prevMouseX - e.offsetX, prevMouseY - e.offsetY);
+            }
+            return ctx.fillRect(e.offsetX, e.offsetY, prevMouseX - e.offsetX, prevMouseY - e.offsetY);
+
+        }
+
+        function drawCircle(e) {
+            ctx.beginPath();
+            let radius = Math.sqrt(Math.pow((prevMouseX - e.offsetX), 2) + Math.pow((prevMouseY - e.offsetY), 2));
+            ctx.arc(prevMouseX, prevMouseY, radius, 0,2*Math.PI);
+
+            fillcolor.checked ? ctx.fill() : ctx.stroke();
+        }
+
+        function drawTri(e) {
+            ctx.beginPath();
+            ctx.moveTo(prevMouseX, prevMouseY);
+            ctx.lineTo(e.offsetX, e.offsetY);
+            ctx.lineTo(prevMouseX * 2 - e.offsetX, e.offsetY);
+            ctx.closePath();
+
+            fillcolor.checked ? ctx.fill() : ctx.stroke();
+        }
+
+        canvas.addEventListener("mousemove", (e) => {
+            if (!isDrawing) return;
+
+            ctx.putImageData(snapshot, 0, 0);
+            if (selectedTool === "Brush") {
+                ctx.lineTo(e.offsetX, e.offsetY);
+                ctx.stroke();
+            } else if (selectedTool === 'Rectangle') {
+                drawRect(e);
+            } else if (selectedTool === 'Circle') {
+                drawCircle(e);
+            }  else if (selectedTool === 'Triangle') {
+                drawTri(e);
+            }  else if (selectedTool === 'Eraser') {
+                ctx.strokeStyle = "#fff";
+                ctx.lineTo(e.offsetX, e.offsetY);
+                ctx.stroke();
+            } 
+        });
+
+        canvas.addEventListener('mousedown', function(e) {
+            isDrawing = true;
+            prevMouseX = e.offsetX;
+            prevMouseY = e.offsetY;
+
+            ctx.fillStyle = favcolor.value;
+            ctx.strokeStyle = favcolor.value;
+            ctx.beginPath();
+            ctx.moveTo(e.clientX - canvas.offsetLeft, e.clientY - canvas.offsetTop);
+            snapshot = ctx.getImageData(0,0,canvas.width, canvas.height);
+        });
+
+        canvas.addEventListener('mouseup', function(e) {
+            isDrawing = false;
+        });
+
+        tools.forEach(btn => {
+            btn.addEventListener("click", () => {
+                document.querySelector('.tool.active').classList.remove('active');
+                btn.classList.add('active');
+                selectedTool = btn.id;
+                console.log(btn.id);
+            });
+        })
+
+        clear_btn.addEventListener("click", () => {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        });
+
+        save_btn.addEventListener("click", () => {
+            const link = document.createElement("a");
+            link.download = `${Date.now()}.jpg`;
+            link.href = canvas.toDataURL();
+            link.click();
+        })
     </script>
 </body>
 </html>
