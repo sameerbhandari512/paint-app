@@ -253,19 +253,44 @@
                 document.querySelector('.tool.active').classList.remove('active');
                 btn.classList.add('active');
                 selectedTool = btn.id;
-                console.log(btn.id);
             });
         })
+
+        document.addEventListener('mousemove', function(event) {
+            if (!canvas.contains(event.target)) {
+                isDrawing = false;
+            }
+        });
 
         clear_btn.addEventListener("click", () => {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
         });
 
+        document.addEventListener("DOMContentLoaded", () => {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        });
+
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault()
+            alert("This only works on Laptop or desktop.")
+        });
+
+        function isCanvasEmpty(canvas) {
+            const blankCanvas = document.createElement('canvas');
+            blankCanvas.width = canvas.width;
+            blankCanvas.height = canvas.height;
+            return canvas.toDataURL() === blankCanvas.toDataURL();
+        }
+
         save_btn.addEventListener("click", () => {
-            const link = document.createElement("a");
-            link.download = `${Date.now()}.jpg`;
-            link.href = canvas.toDataURL();
-            link.click();
+            if (!isCanvasEmpty(canvas)) {
+                const link = document.createElement("a");
+                link.download = `${Date.now()}.jpg`;
+                link.href = canvas.toDataURL();
+                link.click();
+            } else {
+                alert("No Drawing found");
+            }
         })
     </script>
 </body>
